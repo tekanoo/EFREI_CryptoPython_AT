@@ -11,25 +11,33 @@ app = Flask(__name__)
 def hello_world():
     return render_template('hello.html')
 
-# La clé doit être générée une seule fois et conservée
-key = Fernet.generate_key()
-f = Fernet(key)
-
-@app.route('/encrypt/<string:valeur>')
-def encryptage(valeur):
-    valeur_bytes = valeur.encode()  # Conversion str -> bytes
-    token = f.encrypt(valeur_bytes)  # Encrypt la valeur
-    return f"Valeur encryptée : {token.decode()}"  # Retourne le token en str
-
-# Nouvelle route pour le décryptage
-@app.route('/decrypt/<string:valeur>')
-def decryptage(valeur):
+@app.route('/encrypt/<string:cle>/<string:valeur>')
+def encryptage(cle, valeur):
     try:
+        # Convertir la clé fournie par l'utilisateur en bytes
+        cle_bytes = cle.encode()
+        # Créer une instance Fernet avec la clé de l'utilisateur
+        f = Fernet(cle_bytes)
+        
+        valeur_bytes = valeur.encode()  # Conversion str -> bytes
+        token = f.encrypt(valeur_bytes)  # Encrypt la valeur
+        return f"Valeur encryptée : {token.decode()}"  # Retourne le token en str
+    except Exception as e:
+        return f"Erreur d'encryptage : {str(e)} (vérifiez que la clé est valide)"
+
+@app.route('/decrypt/<string:cle>/<string:valeur>')
+def decryptage(cle, valeur):
+    try:
+        # Convertir la clé fournie par l'utilisateur en bytes
+        cle_bytes = cle.encode()
+        # Créer une instance Fernet avec la clé de l'utilisateur
+        f = Fernet(cle_bytes)
+        
         valeur_bytes = valeur.encode()  # Conversion str -> bytes
         decrypted_value = f.decrypt(valeur_bytes)  # Décrypt la valeur
         return f"Valeur décryptée : {decrypted_value.decode()}"  # Retourne la valeur en str
-    except Exception as e:
-        return f"Erreur de décryptage : {str(e)}"
+    except’atException as e:
+        return f"Erreur de décryptage : {str(e)} (vérifiez que la clé est correcte)"
 
 if __name__ == "__main__":
     app.run(debug=True)
