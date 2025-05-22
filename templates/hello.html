@@ -1,3 +1,125 @@
 <!doctype html>
-<title>CryptoPython</title>
-<h1>Bienvenue sur ma page AT !</h1>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CryptoPython</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    #minesweeper {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: repeat(8, 40px);
+      gap: 2px;
+    }
+    .cell {
+      width: 40px;
+      height: 40px;
+      background-color: #ccc;
+      text-align: center;
+      vertical-align: middle;
+      line-height: 40px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .revealed {
+      background-color: #eee;
+      cursor: default;
+    }
+    .mine {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Bienvenue sur ma page AT !</h1>
+
+  <div id="minesweeper"></div>
+
+  <script>
+    const rows = 8;
+    const cols = 8;
+    const mineCount = 10;
+    const grid = [];
+
+    function initGame() {
+      const container = document.getElementById('minesweeper');
+      container.innerHTML = '';
+      let mines = Array(rows * cols).fill(false);
+      let placed = 0;
+
+      // Place mines randomly
+      while (placed < mineCount) {
+        const i = Math.floor(Math.random() * (rows * cols));
+        if (!mines[i]) {
+          mines[i] = true;
+          placed++;
+        }
+      }
+
+      for (let y = 0; y < rows; y++) {
+        grid[y] = [];
+        for (let x = 0; x < cols; x++) {
+          const idx = y * cols + x;
+          const cell = document.createElement('div');
+          cell.classList.add('cell');
+          cell.dataset.x = x;
+          cell.dataset.y = y;
+          cell.dataset.mine = mines[idx];
+          cell.addEventListener('click', () => revealCell(x, y));
+          container.appendChild(cell);
+          grid[y][x] = cell;
+        }
+      }
+    }
+
+    function countAdjacentMines(x, y) {
+      let count = 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+            if (grid[ny][nx].dataset.mine === 'true') count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function revealCell(x, y) {
+      const cell = grid[y][x];
+      if (cell.classList.contains('revealed')) return;
+
+      cell.classList.add('revealed');
+      if (cell.dataset.mine === 'true') {
+        cell.textContent = '💣';
+        cell.classList.add('mine');
+        alert("Game Over !");
+        return;
+      }
+
+      const count = countAdjacentMines(x, y);
+      if (count > 0) {
+        cell.textContent = count;
+      } else {
+        for (let dy = -1; dy <= 1; dy++) {
+          for (let dx = -1; dx <= 1; dx++) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < cols && ny >= 0 && ny < rows) {
+              revealCell(nx, ny);
+            }
+          }
+        }
+      }
+    }
+
+    initGame();
+  </script>
+
+</body>
+</html>
