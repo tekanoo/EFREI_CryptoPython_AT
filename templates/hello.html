@@ -38,10 +38,9 @@
       50% { bottom: 100px; }
       100% { bottom: 0; }
     }
-    #obstacle {
+    .obstacle {
       position: absolute;
       bottom: 0;
-      left: 800px;
       width: 20px;
       height: 40px;
       background-color: red;
@@ -57,18 +56,16 @@
   <div id="score">Score : 0</div>
   <div id="game">
     <div id="dino"></div>
-    <div id="obstacle"></div>
   </div>
 
   <script>
     const dino = document.getElementById('dino');
-    const obstacle = document.getElementById('obstacle');
+    const game = document.getElementById('game');
     const scoreDisplay = document.getElementById('score');
 
     let isJumping = false;
     let score = 0;
     let gameOver = false;
-    let obstacleX = 800;
 
     document.addEventListener('keydown', () => {
       if (!isJumping && !gameOver) {
@@ -85,33 +82,51 @@
       }, 500);
     }
 
-    function moveObstacle() {
+    function createObstacle() {
       if (gameOver) return;
-      obstacleX -= 5;
-      if (obstacleX < -20) {
-        obstacleX = 800;
-        score++;
-        scoreDisplay.textContent = "Score : " + score;
-      }
-      obstacle.style.left = obstacleX + "px";
 
-      checkCollision();
-      requestAnimationFrame(moveObstacle);
+      const obstacle = document.createElement('div');
+      obstacle.classList.add('obstacle');
+      game.appendChild(obstacle);
+      let obstacleX = 800;
+      obstacle.style.left = obstacleX + 'px';
+
+      const move = setInterval(() => {
+        if (gameOver) {
+          clearInterval(move);
+          return;
+        }
+
+        obstacleX -= 5;
+        obstacle.style.left = obstacleX + 'px';
+
+        // Collision
+        const dinoTop = parseInt(window.getComputedStyle(dino).bottom);
+        if (
+          obstacleX < 90 && obstacleX > 50 && dinoTop < 40
+        ) {
+          gameOver = true;
+          clearInterval(move);
+          alert("💥 Game Over ! Score : " + score);
+          location.reload();
+        }
+
+        // Supprimer obstacle hors écran
+        if (obstacleX < -20) {
+          clearInterval(move);
+          game.removeChild(obstacle);
+          score++;
+          scoreDisplay.textContent = "Score : " + score;
+        }
+      }, 20);
+
+      // Créer un autre obstacle aléatoirement (entre 1 et 2 secondes)
+      const delay = Math.random() * 1000 + 1000;
+      setTimeout(createObstacle, delay);
     }
 
-    function checkCollision() {
-      const dinoTop = parseInt(window.getComputedStyle(dino).bottom);
-      const obsLeft = obstacleX;
-
-      if (obsLeft < 90 && obsLeft > 50 && dinoTop < 40) {
-        gameOver = true;
-        alert("💥 Game Over ! Score : " + score);
-        location.reload();
-      }
-    }
-
-    // Démarrer le mouvement
-    moveObstacle();
+    // Lancer le premier obstacle
+    setTimeout(createObstacle, 1000);
   </script>
 
 </body>
